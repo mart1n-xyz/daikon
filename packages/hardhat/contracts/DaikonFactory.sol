@@ -7,30 +7,31 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Daikon is Ownable {
-    constructor() Ownable(msg.sender) {}
-    function getOwner() public view returns (address) {
-        return owner();
-}
-
-receive() external payable {}
-
-contract DaikonFactory is Ownable {
-
-
-    function getOwner() public view returns (address) {
-        return owner();
+    constructor(string memory _initialName) Ownable() {
+        name = _initialName;
     }
 
-    receive() external payable {}
+    string public name;
+
+    function setName(string memory _newName) public onlyOwner {
+        name = _newName;
+    }
+}
+
+contract DaikonFactory is Ownable {
+    event DaikonDeployed(address indexed daikonAddress, address indexed owner, string name);
+
+    constructor() Ownable() {}
 
     /**
      * Deploy a new Daikon contract
+     * @param _name The initial name for the Daikon
      */
-    function deployDaikon(address owner) public returns (address) {
-        Daikon newDaikon = new Daikon();
-        address newOwner = owner == address(0) ? msg.sender : owner;
-        newDaikon.transferOwnership(newOwner);
+    function deployDaikon(string memory _name) public returns (address) {
+        Daikon newDaikon = new Daikon(_name);
+        newDaikon.transferOwnership(msg.sender);
+        emit DaikonDeployed(address(newDaikon), msg.sender, _name);
+        console.log("New Daikon deployed at:", address(newDaikon));
         return address(newDaikon);
     }
 }
-

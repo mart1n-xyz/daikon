@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contract } from "ethers";
 
 /**
  * Deploys a contract named "DaikonFactory" using the deployer account
@@ -32,7 +31,7 @@ const deployDaikonFactory: DeployFunction = async function (hre: HardhatRuntimeE
   });
 
   // Get the deployed contract to interact with it after deploying.
-  const daikonFactory = await hre.ethers.getContract<Contract>("DaikonFactory", deployer);
+  const daikonFactory = await hre.deployments.get("DaikonFactory");
   console.log("👋 DaikonFactory deployed at:", daikonFactory.address);
 };
 
