@@ -1,10 +1,5 @@
 # Daikon Factory
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
-
 ✅ ETHOnline 2024 project bult using Scaffold-ETH 2. 
 
 ## Requirements
