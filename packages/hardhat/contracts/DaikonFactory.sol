@@ -52,6 +52,11 @@ contract DaikonLaunchpad is Ownable {
     mapping(uint256 => mapping(uint256 => mapping(address => uint256))) public periodicSaleContributions;
     mapping(uint256 => mapping(uint256 => SaleRecord)) public saleRecords;
 
+    event StewardCandidateRegistered(uint256 indexed daikonId, address indexed candidate);
+
+    mapping(uint256 => address[]) public stewardCandidates;
+    mapping(uint256 => mapping(address => bool)) public isStewardCandidate;
+
     constructor() Ownable() {}
     /**
      * Create a new Daikon within the registry
@@ -343,7 +348,7 @@ contract DaikonLaunchpad is Ownable {
         // Claim seeds if available
         checkAndClaimSeeds(_daikonId);
         
-        require(daikon.phase == 2, "Seeds can only be redeemed in phase 2");
+        require(daikon.phase == 2 || daikon.phase == 4, "Seeds can only be redeemed in phase 2 or 4");
         require(userSeeds[_daikonId][msg.sender] >= _seedAmount, "Insufficient seeds to redeem");
 
         uint256 scaleFactor = 1e18;
@@ -420,5 +425,113 @@ contract DaikonLaunchpad is Ownable {
                 claimSeedsFromPastSale(_daikonId, i);
             }
         }
+    }
+
+    /**
+     * Get Current Periodic Sale Info
+     * @param _daikonId The ID of the Daikon
+     * @return periodicSaleEndTimestamp The end timestamp of the current sale
+     * @return seedsForPeriodicSale The number of seeds available for the current sale
+     * @return contributionsInCurrentSale The total contributions in the current sale
+     * @return currentSaleIndex The index of the current sale
+     */
+    function getCurrentPeriodicSaleInfo(uint256 _daikonId) public view returns (
+        uint256 periodicSaleEndTimestamp,
+        uint256 seedsForPeriodicSale,
+        uint256 contributionsInCurrentSale,
+        uint256 currentSaleIndex
+    ) {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        PeriodicSaleInfo storage saleInfo = daikons[_daikonId].periodicSaleInfo;
+        return (
+            saleInfo.periodicSaleEndTimestamp,
+            saleInfo.seedsForPeriodicSale,
+            saleInfo.contributionsInCurrentSale,
+            saleInfo.currentSaleIndex
+        );
+    }
+
+    /**
+     * Get User's Periodic Sale Contribution
+     * @param _daikonId The ID of the Daikon
+     * @param _saleId The ID of the sale
+     * @param _user The address of the user
+     * @return The user's contribution to the sale
+     */
+    function getUserPeriodicSaleContribution(uint256 _daikonId, uint256 _saleId, address _user) public view returns (uint256) {
+        return periodicSaleContributions[_daikonId][_saleId][_user];
+    }
+
+    /**
+     * Get Sale Record
+     * @param _daikonId The ID of the Daikon
+     * @param _saleId The ID of the sale
+     * @return seedsAllocated The number of seeds allocated in the sale
+     * @return amountRaised The amount raised in the sale
+     * @return totalSeeds The total number of seeds in the sale
+     */
+    function getSaleRecord(uint256 _daikonId, uint256 _saleId) public view returns (
+        uint256 seedsAllocated,
+        uint256 amountRaised,
+        uint256 totalSeeds
+    ) {
+        SaleRecord storage record = saleRecords[_daikonId][_saleId];
+        return (record.seedsAllocated, record.amountRaised, record.totalSeeds);
+    }
+
+   
+
+    /**
+     * Get User's Redeemable ETH
+     * @param _daikonId The ID of the Daikon
+     * @param _user The address of the user
+     * @return The amount of ETH the user can redeem
+     */
+    function getRedeemableEth(uint256 _daikonId, address _user) public view returns (uint256) {
+        Daikon storage daikon = daikons[_daikonId];
+        uint256 userSeedAmount = userSeeds[_daikonId][_user];
+        if (userSeedAmount == 0 || daikon.totalSeeds == 0) return 0;
+        
+        uint256 scaleFactor = 1e18;
+        uint256 scaledRedeemableEth = (userSeedAmount * daikon.totalContributions * scaleFactor) / daikon.totalSeeds;
+        return scaledRedeemableEth / scaleFactor;
+    }
+
+    /**
+     * Register as a candidate for the Steward role
+     * @param _daikonId The ID of the Daikon
+     */
+    function registerAsStewardCandidate(uint256 _daikonId) public payable {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        require(msg.value == 0.01 ether, "Registration fee is 0.01 ETH");
+        require(!isStewardCandidate[_daikonId][msg.sender], "Already registered as a candidate");
+
+        Daikon storage daikon = daikons[_daikonId];
+        require(daikon.phase < 3, "Cannot register after DAO has graduated");
+
+        stewardCandidates[_daikonId].push(msg.sender);
+        isStewardCandidate[_daikonId][msg.sender] = true;
+
+        emit StewardCandidateRegistered(_daikonId, msg.sender);
+    }
+
+    /**
+     * Get the list of Steward candidates for a Daikon
+     * @param _daikonId The ID of the Daikon
+     * @return An array of candidate addresses
+     */
+    function getStewardCandidates(uint256 _daikonId) public view returns (address[] memory) {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        return stewardCandidates[_daikonId];
+    }
+
+    /**
+     * Get the number of Steward candidates for a Daikon
+     * @param _daikonId The ID of the Daikon
+     * @return The number of candidates
+     */
+    function getStewardCandidateCount(uint256 _daikonId) public view returns (uint256) {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        return stewardCandidates[_daikonId].length;
     }
 }

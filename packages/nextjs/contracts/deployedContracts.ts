@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     DaikonLaunchpad: {
-      address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
       abi: [
         {
           inputs: [],
@@ -261,6 +261,25 @@ const deployedContracts = {
             },
           ],
           name: "SeedsRedeemed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "daikonId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "candidate",
+              type: "address",
+            },
+          ],
+          name: "StewardCandidateRegistered",
           type: "event",
         },
         {
@@ -544,6 +563,40 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
+          name: "getCurrentPeriodicSaleInfo",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "periodicSaleEndTimestamp",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "seedsForPeriodicSale",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "contributionsInCurrentSale",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "currentSaleIndex",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
           name: "getDaikonContributions",
           outputs: [
             {
@@ -624,7 +677,132 @@ const deployedContracts = {
               type: "address",
             },
           ],
+          name: "getRedeemableEth",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "_saleId",
+              type: "uint256",
+            },
+          ],
+          name: "getSaleRecord",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "seedsAllocated",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "amountRaised",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "totalSeeds",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
+          name: "getStewardCandidateCount",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
+          name: "getStewardCandidates",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "",
+              type: "address[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "_user",
+              type: "address",
+            },
+          ],
           name: "getUserContributions",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "_saleId",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "_user",
+              type: "address",
+            },
+          ],
+          name: "getUserPeriodicSaleContribution",
           outputs: [
             {
               internalType: "uint256",
@@ -654,6 +832,30 @@ const deployedContracts = {
               internalType: "uint256",
               name: "",
               type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "isStewardCandidate",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
             },
           ],
           stateMutability: "view",
@@ -720,6 +922,19 @@ const deployedContracts = {
           type: "function",
         },
         {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
+          name: "registerAsStewardCandidate",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
           inputs: [],
           name: "renounceOwnership",
           outputs: [],
@@ -755,6 +970,30 @@ const deployedContracts = {
               internalType: "uint256",
               name: "totalSeeds",
               type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "stewardCandidates",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
             },
           ],
           stateMutability: "view",
