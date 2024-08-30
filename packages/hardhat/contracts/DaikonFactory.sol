@@ -29,6 +29,10 @@ contract DaikonLaunchpad is Ownable {
         string data; // JSON of links to socials, manifesto, description, and image
         uint256 totalSeeds; // Total seeds for this Daikon
         uint256 circulatingSeeds; // Current circulating seeds for this Daikon
+        PeriodicSaleInfo periodicSaleInfo;
+    }
+
+    struct PeriodicSaleInfo {
         uint256 periodicSaleEndTimestamp;
         uint256 seedsForPeriodicSale;
         uint256 contributionsInCurrentSale;
@@ -80,10 +84,7 @@ contract DaikonLaunchpad is Ownable {
             _data,
             _totalSeeds,
             0,
-            0,
-            0,
-            0,
-            0
+            PeriodicSaleInfo(0, 0, 0, 0)
         ));
         deployerToDaikonIds[msg.sender].push(newDaikonId);
         emit DaikonCreated(newDaikonId, msg.sender, _name, _symbol);
@@ -183,14 +184,14 @@ contract DaikonLaunchpad is Ownable {
     function startPeriodicSale(uint256 _daikonId) internal {
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
-        require(daikon.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleEndTimestamp, "Previous sale has not ended");
+        require(daikon.periodicSaleInfo.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleInfo.periodicSaleEndTimestamp, "Previous sale has not ended");
 
-        daikon.periodicSaleEndTimestamp = block.timestamp + 3 days;
-        daikon.seedsForPeriodicSale = daikon.totalSeeds / 10; // 10% of total seeds
-        daikon.contributionsInCurrentSale = 0;
-        daikon.currentSaleIndex++;
+        daikon.periodicSaleInfo.periodicSaleEndTimestamp = block.timestamp + 3 days;
+        daikon.periodicSaleInfo.seedsForPeriodicSale = daikon.totalSeeds / 10; // 10% of total seeds
+        daikon.periodicSaleInfo.contributionsInCurrentSale = 0;
+        daikon.periodicSaleInfo.currentSaleIndex++;
 
-        emit PeriodicSaleStarted(_daikonId, daikon.currentSaleIndex, daikon.periodicSaleEndTimestamp, daikon.seedsForPeriodicSale);
+        emit PeriodicSaleStarted(_daikonId, daikon.periodicSaleInfo.currentSaleIndex, daikon.periodicSaleInfo.periodicSaleEndTimestamp, daikon.periodicSaleInfo.seedsForPeriodicSale);
     }
 
     /**
@@ -205,7 +206,7 @@ contract DaikonLaunchpad is Ownable {
         checkAndStartNewPeriodicSale(_daikonId);
         
         require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
-        require(block.timestamp < daikon.periodicSaleEndTimestamp, "Periodic sale has ended");
+        require(block.timestamp < daikon.periodicSaleInfo.periodicSaleEndTimestamp, "Periodic sale has ended");
         require(msg.value > 0, "Contribution must be greater than 0");
 
         // Check and claim seeds from phase 1 if available
@@ -213,12 +214,12 @@ contract DaikonLaunchpad is Ownable {
             claimSeeds(_daikonId);
         }
 
-        daikon.contributionsInCurrentSale += msg.value;
-        periodicSaleContributions[_daikonId][daikon.currentSaleIndex][msg.sender] += msg.value;
+        daikon.periodicSaleInfo.contributionsInCurrentSale += msg.value;
+        periodicSaleContributions[_daikonId][daikon.periodicSaleInfo.currentSaleIndex][msg.sender] += msg.value;
 
-        emit PeriodicSaleContribution(_daikonId, daikon.currentSaleIndex, msg.sender, msg.value);
+        emit PeriodicSaleContribution(_daikonId, daikon.periodicSaleInfo.currentSaleIndex, msg.sender, msg.value);
 
-        if (daikon.totalContributions + daikon.contributionsInCurrentSale >= 80 ether) {
+        if (daikon.totalContributions + daikon.periodicSaleInfo.contributionsInCurrentSale >= 80 ether) {
             endPeriodicSale(_daikonId);
             daikon.phase = 3;
             emit PhaseAdvanced(_daikonId, daikon.phase);
@@ -234,9 +235,11 @@ contract DaikonLaunchpad is Ownable {
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
 
-        if (block.timestamp >= daikon.periodicSaleEndTimestamp) {
+        if (block.timestamp >= daikon.periodicSaleInfo.periodicSaleEndTimestamp) {
             endPeriodicSale(_daikonId);
-            startPeriodicSale(_daikonId);
+            if (daikon.phase == 2) {
+                startPeriodicSale(_daikonId);
+            }
         }
     }
 
@@ -247,20 +250,26 @@ contract DaikonLaunchpad is Ownable {
     function endPeriodicSale(uint256 _daikonId) internal {
         Daikon storage daikon = daikons[_daikonId];
         
-        // Record the current sale
-        saleRecords[_daikonId][daikon.currentSaleIndex] = SaleRecord(
-            daikon.seedsForPeriodicSale,
-            daikon.contributionsInCurrentSale,
-            daikon.totalSeeds
-        );
+        if (daikon.periodicSaleInfo.contributionsInCurrentSale == 0) {
+            daikon.phase = 4;
+            emit PhaseAdvanced(_daikonId, daikon.phase);
+        } else {
+            // Record the current sale
+            saleRecords[_daikonId][daikon.periodicSaleInfo.currentSaleIndex] = SaleRecord(
+                daikon.periodicSaleInfo.seedsForPeriodicSale,
+                daikon.periodicSaleInfo.contributionsInCurrentSale,
+                daikon.totalSeeds
+            );
 
-        // Update total contributions
-        daikon.totalContributions += daikon.contributionsInCurrentSale;
+            // Update total contributions
+            daikon.totalContributions += daikon.periodicSaleInfo.contributionsInCurrentSale;
+            daikon.totalSeeds += daikon.periodicSaleInfo.seedsForPeriodicSale;
 
-        emit PeriodicSaleEnded(_daikonId, daikon.currentSaleIndex, daikon.seedsForPeriodicSale, daikon.contributionsInCurrentSale, daikon.totalSeeds);
+            emit PeriodicSaleEnded(_daikonId, daikon.periodicSaleInfo.currentSaleIndex, daikon.periodicSaleInfo.seedsForPeriodicSale, daikon.periodicSaleInfo.contributionsInCurrentSale, daikon.totalSeeds);
+        }
 
         // Reset contributions for the next sale
-        daikon.contributionsInCurrentSale = 0;
+        daikon.periodicSaleInfo.contributionsInCurrentSale = 0;
     }
 
     /**
@@ -357,8 +366,59 @@ contract DaikonLaunchpad is Ownable {
 
     function checkAndStartNewPeriodicSale(uint256 _daikonId) internal {
         Daikon storage daikon = daikons[_daikonId];
-        if (daikon.phase == 2 && (daikon.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleEndTimestamp)) {
+        if (daikon.phase == 2 && (daikon.periodicSaleInfo.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleInfo.periodicSaleEndTimestamp)) {
             startPeriodicSale(_daikonId);
+        }
+    }
+
+    /**
+     * Claim seeds from a specific past periodic sale
+     * @param _daikonId The ID of the Daikon
+     * @param _saleId The ID of the past sale
+     */
+    function claimSeedsFromPastSale(uint256 _daikonId, uint256 _saleId) public {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        Daikon storage daikon = daikons[_daikonId];
+        require(_saleId < daikon.periodicSaleInfo.currentSaleIndex, "Can only claim from past sales");
+        require(periodicSaleContributions[_daikonId][_saleId][msg.sender] > 0, "No contributions to claim seeds for this sale");
+
+        SaleRecord storage sale = saleRecords[_daikonId][_saleId];
+        uint256 contribution = periodicSaleContributions[_daikonId][_saleId][msg.sender];
+        
+        // Use SafeMath for multiplication to prevent overflow
+        uint256 scaledContribution = contribution * 1e18;
+        uint256 seeds = (scaledContribution * sale.seedsAllocated) / sale.amountRaised;
+        
+        // Round down to ensure total distributed seeds don't exceed seedsAllocated
+        seeds = seeds / 1e18;
+
+        userSeeds[_daikonId][msg.sender] += seeds;
+        daikon.circulatingSeeds += seeds;
+        
+        // Clear the contribution to prevent double claiming
+        periodicSaleContributions[_daikonId][_saleId][msg.sender] = 0;
+
+        emit SeedsAssigned(_daikonId, msg.sender, seeds);
+    }
+
+    /**
+     * Claim seeds from all past periodic sales since the last claim
+     * @param _daikonId The ID of the Daikon
+     */
+    function claimAllPendingSeeds(uint256 _daikonId) public {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        Daikon storage daikon = daikons[_daikonId];
+
+        // Check and claim seeds from phase 1 if available
+        if (daikon.seedsAssignable && userContributions[_daikonId][msg.sender] > 0 && userSeeds[_daikonId][msg.sender] == 0) {
+            claimSeeds(_daikonId);
+        }
+
+        // Claim seeds from all past periodic sales since the last claim
+        for (uint256 i = 0; i < daikon.periodicSaleInfo.currentSaleIndex; i++) {
+            if (periodicSaleContributions[_daikonId][i][msg.sender] > 0) {
+                claimSeedsFromPastSale(_daikonId, i);
+            }
         }
     }
 }
