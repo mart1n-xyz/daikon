@@ -12,6 +12,9 @@ contract DaikonLaunchpad is Ownable {
     event Contribution(uint256 indexed daikonId, address indexed contributor, uint256 amount);
     event SeedsAssigned(uint256 indexed daikonId, address indexed contributor, uint256 seedsAmount);
     event SeedsRedeemed(uint256 indexed daikonId, address indexed redeemer, uint256 seedsAmount, uint256 ethAmount);
+    event PeriodicSaleStarted(uint256 indexed daikonId, uint256 indexed saleIndex, uint256 saleEndTimestamp, uint256 seedsForSale);
+    event PeriodicSaleContribution(uint256 indexed daikonId, uint256 indexed saleIndex, address indexed contributor, uint256 amount);
+    event PeriodicSaleEnded(uint256 indexed daikonId, uint256 indexed saleIndex, uint256 seedsAllocated, uint256 amountRaised, uint256 totalSeeds);
     
     struct Daikon {
         uint256 id;
@@ -26,12 +29,24 @@ contract DaikonLaunchpad is Ownable {
         string data; // JSON of links to socials, manifesto, description, and image
         uint256 totalSeeds; // Total seeds for this Daikon
         uint256 circulatingSeeds; // Current circulating seeds for this Daikon
+        uint256 periodicSaleEndTimestamp;
+        uint256 seedsForPeriodicSale;
+        uint256 contributionsInCurrentSale;
+        uint256 currentSaleIndex;
+    }
+
+    struct SaleRecord {
+        uint256 seedsAllocated;
+        uint256 amountRaised;
+        uint256 totalSeeds;
     }
 
     Daikon[] public daikons;
     mapping(address => uint256[]) public deployerToDaikonIds;
     mapping(uint256 => mapping(address => uint256)) public userContributions;
     mapping(uint256 => mapping(address => uint256)) public userSeeds;
+    mapping(uint256 => mapping(uint256 => mapping(address => uint256))) public periodicSaleContributions;
+    mapping(uint256 => mapping(uint256 => SaleRecord)) public saleRecords;
 
     constructor() Ownable() {}
     /**
@@ -64,6 +79,10 @@ contract DaikonLaunchpad is Ownable {
             false,
             _data,
             _totalSeeds,
+            0,
+            0,
+            0,
+            0,
             0
         ));
         deployerToDaikonIds[msg.sender].push(newDaikonId);
@@ -146,6 +165,7 @@ contract DaikonLaunchpad is Ownable {
                 daikon.phase = 3;
             } else {
                 daikon.phase = 2;
+                startPeriodicSale(_daikonId);
             }
             daikon.nextPhaseTimestamp = type(uint256).max; // Set to max value to avoid interference
             daikon.seedsAssignable = true;
@@ -154,6 +174,93 @@ contract DaikonLaunchpad is Ownable {
             daikon.phase = 3;
             emit PhaseAdvanced(_daikonId, daikon.phase);
         }
+    }
+
+    /**
+     * Start a periodic sale for a Daikon
+     * @param _daikonId The ID of the Daikon to start the sale for
+     */
+    function startPeriodicSale(uint256 _daikonId) internal {
+        Daikon storage daikon = daikons[_daikonId];
+        require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
+        require(daikon.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleEndTimestamp, "Previous sale has not ended");
+
+        daikon.periodicSaleEndTimestamp = block.timestamp + 3 days;
+        daikon.seedsForPeriodicSale = daikon.totalSeeds / 10; // 10% of total seeds
+        daikon.contributionsInCurrentSale = 0;
+        daikon.currentSaleIndex++;
+
+        emit PeriodicSaleStarted(_daikonId, daikon.currentSaleIndex, daikon.periodicSaleEndTimestamp, daikon.seedsForPeriodicSale);
+    }
+
+    /**
+     * Contribute to the periodic sale of a Daikon
+     * @param _daikonId The ID of the Daikon to contribute to
+     */
+    function contributeToPeriodicSale(uint256 _daikonId) public payable {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        Daikon storage daikon = daikons[_daikonId];
+        
+        // Check if a new sale needs to be started
+        checkAndStartNewPeriodicSale(_daikonId);
+        
+        require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
+        require(block.timestamp < daikon.periodicSaleEndTimestamp, "Periodic sale has ended");
+        require(msg.value > 0, "Contribution must be greater than 0");
+
+        // Check and claim seeds from phase 1 if available
+        if (daikon.seedsAssignable && userContributions[_daikonId][msg.sender] > 0 && userSeeds[_daikonId][msg.sender] == 0) {
+            claimSeeds(_daikonId);
+        }
+
+        daikon.contributionsInCurrentSale += msg.value;
+        periodicSaleContributions[_daikonId][daikon.currentSaleIndex][msg.sender] += msg.value;
+
+        emit PeriodicSaleContribution(_daikonId, daikon.currentSaleIndex, msg.sender, msg.value);
+
+        if (daikon.totalContributions + daikon.contributionsInCurrentSale >= 80 ether) {
+            endPeriodicSale(_daikonId);
+            daikon.phase = 3;
+            emit PhaseAdvanced(_daikonId, daikon.phase);
+        }
+    }
+
+    /**
+     * Check if the current sale has ended and start a new one if necessary
+     * @param _daikonId The ID of the Daikon to check
+     */
+    function checkAndStartNewSale(uint256 _daikonId) public {
+        require(_daikonId < daikons.length, "Daikon does not exist");
+        Daikon storage daikon = daikons[_daikonId];
+        require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
+
+        if (block.timestamp >= daikon.periodicSaleEndTimestamp) {
+            endPeriodicSale(_daikonId);
+            startPeriodicSale(_daikonId);
+        }
+    }
+
+    /**
+     * End the current periodic sale and update total contributions
+     * @param _daikonId The ID of the Daikon to end the sale for
+     */
+    function endPeriodicSale(uint256 _daikonId) internal {
+        Daikon storage daikon = daikons[_daikonId];
+        
+        // Record the current sale
+        saleRecords[_daikonId][daikon.currentSaleIndex] = SaleRecord(
+            daikon.seedsForPeriodicSale,
+            daikon.contributionsInCurrentSale,
+            daikon.totalSeeds
+        );
+
+        // Update total contributions
+        daikon.totalContributions += daikon.contributionsInCurrentSale;
+
+        emit PeriodicSaleEnded(_daikonId, daikon.currentSaleIndex, daikon.seedsForPeriodicSale, daikon.contributionsInCurrentSale, daikon.totalSeeds);
+
+        // Reset contributions for the next sale
+        daikon.contributionsInCurrentSale = 0;
     }
 
     /**
@@ -220,6 +327,13 @@ contract DaikonLaunchpad is Ownable {
     function redeemSeeds(uint256 _daikonId, uint256 _seedAmount) public {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
+        
+        // Check and advance phase if needed
+        checkAndAdvancePhase(_daikonId);
+        
+        // Claim seeds if available
+        checkAndClaimSeeds(_daikonId);
+        
         require(daikon.phase == 2, "Seeds can only be redeemed in phase 2");
         require(userSeeds[_daikonId][msg.sender] >= _seedAmount, "Insufficient seeds to redeem");
 
@@ -237,5 +351,14 @@ contract DaikonLaunchpad is Ownable {
         require(sent, "Failed to send Ether");
 
         emit SeedsRedeemed(_daikonId, msg.sender, _seedAmount, redeemableEth);
+
+        checkAndStartNewPeriodicSale(_daikonId);
+    }
+
+    function checkAndStartNewPeriodicSale(uint256 _daikonId) internal {
+        Daikon storage daikon = daikons[_daikonId];
+        if (daikon.phase == 2 && (daikon.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleEndTimestamp)) {
+            startPeriodicSale(_daikonId);
+        }
     }
 }
