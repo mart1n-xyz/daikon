@@ -6,30 +6,33 @@ import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DaikonFactory is Ownable {
-    event DaikonCreated(uint256 indexed daikonId, address indexed owner, string name);
-    event DaikonNameChanged(uint256 indexed daikonId, string newName);
-
+contract DaikonLaunchpad is Ownable {
+    event DaikonCreated(uint256 indexed daikonId, address indexed owner, string name, string symbol);
+    
     struct Daikon {
         uint256 id;
-        address owner;
+        address deployer;
         string name;
+        string symbol;
+        uint256 creationTime;
+        uint256 totalContributions;
     }
 
     Daikon[] public daikons;
-    mapping(address => uint256[]) public ownerToDaikonIds;
+    mapping(address => uint256[]) public deployerToDaikonIds;
 
     constructor() Ownable() {}
 
     /**
      * Create a new Daikon within the registry
      * @param _name The initial name for the Daikon
+     * @param _symbol The symbol for the Daikon's token
      */
-    function createDaikon(string memory _name) public returns (uint256) {
+    function createDaikon(string memory _name, string memory _symbol) public returns (uint256) {
         uint256 newDaikonId = daikons.length;
-        daikons.push(Daikon(newDaikonId, msg.sender, _name));
-        ownerToDaikonIds[msg.sender].push(newDaikonId);
-        emit DaikonCreated(newDaikonId, msg.sender, _name);
+        daikons.push(Daikon(newDaikonId, msg.sender, _name, _symbol, block.timestamp, 0));
+        deployerToDaikonIds[msg.sender].push(newDaikonId);
+        emit DaikonCreated(newDaikonId, msg.sender, _name, _symbol);
         console.log("New Daikon created with ID:", newDaikonId);
         return newDaikonId;
     }
@@ -50,46 +53,30 @@ contract DaikonFactory is Ownable {
     }
 
     /**
-     * Get Daikons owned by an address
+     * Get Daikons deployed by an address
      */
-    function getDaikonsByOwner(address _owner) public view returns (uint256[] memory) {
-        return ownerToDaikonIds[_owner];
+    function getDaikonsByDeployer(address _deployer) public view returns (uint256[] memory) {
+        return deployerToDaikonIds[_deployer];
     }
 
     /**
-     * Set name for a Daikon
+     * Contribute ETH to a Daikon
      */
-    function setDaikonName(uint256 _daikonId, string memory _newName) public {
+    function contributeToDaikon(uint256 _daikonId) public payable {
         require(_daikonId < daikons.length, "Daikon does not exist");
-        require(daikons[_daikonId].owner == msg.sender, "Only Daikon owner can set name");
-        daikons[_daikonId].name = _newName;
-        emit DaikonNameChanged(_daikonId, _newName);
+        require(msg.value > 0, "Contribution must be greater than 0");
+        
+        Daikon storage daikon = daikons[_daikonId];
+        daikon.totalContributions += msg.value;
+        
+        // Additional logic for handling contributions can be added here
     }
 
     /**
-     * Transfer ownership of a Daikon
+     * Get total contributions for a Daikon
      */
-    function transferDaikonOwnership(uint256 _daikonId, address _newOwner) public {
+    function getDaikonContributions(uint256 _daikonId) public view returns (uint256) {
         require(_daikonId < daikons.length, "Daikon does not exist");
-        require(daikons[_daikonId].owner == msg.sender, "Only Daikon owner can transfer ownership");
-        require(_newOwner != address(0), "New owner cannot be zero address");
-
-        // Remove Daikon from current owner's list
-        uint256[] storage currentOwnerDaikons = ownerToDaikonIds[msg.sender];
-        for (uint i = 0; i < currentOwnerDaikons.length; i++) {
-            if (currentOwnerDaikons[i] == _daikonId) {
-                currentOwnerDaikons[i] = currentOwnerDaikons[currentOwnerDaikons.length - 1];
-                currentOwnerDaikons.pop();
-                break;
-            }
-        }
-
-        // Add Daikon to new owner's list
-        ownerToDaikonIds[_newOwner].push(_daikonId);
-
-        // Update Daikon owner
-        daikons[_daikonId].owner = _newOwner;
+        return daikons[_daikonId].totalContributions;
     }
-
-
 }

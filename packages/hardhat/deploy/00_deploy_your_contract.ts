@@ -2,11 +2,11 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
 /**
- * Deploys a contract named "DaikonFactory" using the deployer account
+ * Deploys a contract named "DaikonLaunchpad" using the deployer account
  *
  * @param hre HardhatRuntimeEnvironment object.
  */
-const deployDaikonFactory: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deployDaikonLaunchpad: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
 
@@ -20,7 +20,7 @@ const deployDaikonFactory: DeployFunction = async function (hre: HardhatRuntimeE
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  await deploy("DaikonFactory", {
+  await deploy("DaikonLaunchpad", {
     from: deployer,
     // Contract constructor arguments
     args: [],
@@ -31,12 +31,12 @@ const deployDaikonFactory: DeployFunction = async function (hre: HardhatRuntimeE
   });
 
   // Get the deployed contract to interact with it after deploying.
-  const daikonFactory = await hre.deployments.get("DaikonFactory");
-  console.log("👋 DaikonFactory deployed at:", daikonFactory.address);
+  const DaikonLaunchpad = await hre.deployments.get("DaikonLaunchpad");
+  console.log("👋 DaikonLaunchpad deployed at:", DaikonLaunchpad.address);
 };
 
-export default deployDaikonFactory;
+export default deployDaikonLaunchpad;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
-// e.g. yarn deploy --tags DaikonFactory
-deployDaikonFactory.tags = ["DaikonFactory"];
+// e.g. yarn deploy --tags DaikonLaunchpad
+deployDaikonLaunchpad.tags = ["DaikonLaunchpad"];
