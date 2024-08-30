@@ -6,8 +6,8 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
-    DaikonFactory: {
-      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    DaikonLaunchpad: {
+      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       abi: [
         {
           inputs: [],
@@ -35,27 +35,14 @@ const deployedContracts = {
               name: "name",
               type: "string",
             },
-          ],
-          name: "DaikonCreated",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "daikonId",
-              type: "uint256",
-            },
             {
               indexed: false,
               internalType: "string",
-              name: "newName",
+              name: "symbol",
               type: "string",
             },
           ],
-          name: "DaikonNameChanged",
+          name: "DaikonCreated",
           type: "event",
         },
         {
@@ -80,8 +67,26 @@ const deployedContracts = {
         {
           inputs: [
             {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
+          name: "contributeToDaikon",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "string",
               name: "_name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_symbol",
               type: "string",
             },
           ],
@@ -113,13 +118,62 @@ const deployedContracts = {
             },
             {
               internalType: "address",
-              name: "owner",
+              name: "deployer",
               type: "address",
             },
             {
               internalType: "string",
               name: "name",
               type: "string",
+            },
+            {
+              internalType: "string",
+              name: "symbol",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "creationTime",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "totalContributions",
+              type: "uint256",
+            },
+            {
+              internalType: "uint8",
+              name: "phase",
+              type: "uint8",
+            },
+            {
+              internalType: "uint256",
+              name: "nextPhaseTimestamp",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "deployerToDaikonIds",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
             },
           ],
           stateMutability: "view",
@@ -144,7 +198,7 @@ const deployedContracts = {
                 },
                 {
                   internalType: "address",
-                  name: "owner",
+                  name: "deployer",
                   type: "address",
                 },
                 {
@@ -152,10 +206,54 @@ const deployedContracts = {
                   name: "name",
                   type: "string",
                 },
+                {
+                  internalType: "string",
+                  name: "symbol",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "creationTime",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "totalContributions",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint8",
+                  name: "phase",
+                  type: "uint8",
+                },
+                {
+                  internalType: "uint256",
+                  name: "nextPhaseTimestamp",
+                  type: "uint256",
+                },
               ],
-              internalType: "struct DaikonFactory.Daikon",
+              internalType: "struct DaikonLaunchpad.Daikon",
               name: "",
               type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_daikonId",
+              type: "uint256",
+            },
+          ],
+          name: "getDaikonContributions",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
             },
           ],
           stateMutability: "view",
@@ -178,11 +276,11 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "address",
-              name: "_owner",
+              name: "_deployer",
               type: "address",
             },
           ],
-          name: "getDaikonsByOwner",
+          name: "getDaikonsByDeployer",
           outputs: [
             {
               internalType: "uint256[]",
@@ -207,68 +305,8 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [
-            {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          name: "ownerToDaikonIds",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
           inputs: [],
           name: "renounceOwnership",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "_daikonId",
-              type: "uint256",
-            },
-            {
-              internalType: "string",
-              name: "_newName",
-              type: "string",
-            },
-          ],
-          name: "setDaikonName",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "_daikonId",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "_newOwner",
-              type: "address",
-            },
-          ],
-          name: "transferDaikonOwnership",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -287,11 +325,7 @@ const deployedContracts = {
           type: "function",
         },
       ],
-      inheritedFunctions: {
-        owner: "@openzeppelin/contracts/access/Ownable.sol",
-        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
-        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
-      },
+      inheritedFunctions: {},
     },
   },
 } as const;
