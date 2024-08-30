@@ -5,8 +5,9 @@ pragma solidity >=0.8.0 <0.9.0;
 import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract DaikonLaunchpad is Ownable {
+contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     event DaikonCreated(uint256 indexed daikonId, address indexed owner, string name, string symbol);
     event PhaseAdvanced(uint256 indexed daikonId, uint8 newPhase);
     event Contribution(uint256 indexed daikonId, address indexed contributor, uint256 amount);
@@ -57,18 +58,28 @@ contract DaikonLaunchpad is Ownable {
     mapping(uint256 => address[]) public stewardCandidates;
     mapping(uint256 => mapping(address => bool)) public isStewardCandidate;
 
-    constructor() Ownable() {}
+    uint256 public maxContribution;
+    uint256 public maxContributionWithBuffer;
+
+    constructor() Ownable() {
+        maxContribution = 80 ether;
+        maxContributionWithBuffer = 80.05 ether;
+    }
     /**
      * Create a new Daikon within the registry
      * @param _name The initial name for the Daikon
      * @param _symbol The symbol for the Daikon's token
      * @param _contributionPeriod The contribution period in days (1, 2, or 3)
      * @param _data JSON string containing links to socials, manifesto, description, and image
-     * @param _totalSeeds The total number of seeds for this Daikon
      */
-    function createDaikon(string memory _name, string memory _symbol, uint256 _contributionPeriod, string memory _data, uint256 _totalSeeds) public returns (uint256) {
+    function createDaikon(string memory _name, string memory _symbol, uint256 _contributionPeriod, string memory _data) public returns (uint256) {
+        require(bytes(_name).length > 0, "Name cannot be empty");
+        require(bytes(_symbol).length > 0, "Symbol cannot be empty");
+        require(_contributionPeriod >= 1 && _contributionPeriod <= 3, "Contribution period must be 1, 2, or 3 days");
+
         uint256 newDaikonId = daikons.length;
         uint256 contributionPeriodInDays = 3 days; // Default to 3 days
+        uint256 totalSeeds = 10_000_000; // Total seeds is always 10 million
 
         if (_contributionPeriod == 1) {
             contributionPeriodInDays = 1 days;
@@ -87,7 +98,7 @@ contract DaikonLaunchpad is Ownable {
             block.timestamp + contributionPeriodInDays,
             false,
             _data,
-            _totalSeeds,
+            totalSeeds,
             0,
             PeriodicSaleInfo(0, 0, 0, 0)
         ));
@@ -122,7 +133,7 @@ contract DaikonLaunchpad is Ownable {
     /**
      * Contribute ETH to a Daikon
      */
-    function contributeToDaikon(uint256 _daikonId) public payable {
+    function contributeToDaikon(uint256 _daikonId) public payable nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         require(msg.value > 0, "Contribution must be greater than 0");
         
@@ -133,8 +144,8 @@ contract DaikonLaunchpad is Ownable {
         require(daikon.phase == 1, "Contributions are only allowed in phase 1");
         require(block.timestamp < daikon.nextPhaseTimestamp, "Contribution period has ended");
         
-        require(daikon.totalContributions < 80 ether, "Total contributions already at or above 80 ETH");
-        require(daikon.totalContributions + msg.value <= 80.05 ether, "Contribution would exceed 80.05 ETH total");
+        require(daikon.totalContributions < maxContribution, "Total contributions already at or above maximum");
+        require(daikon.totalContributions + msg.value <= maxContributionWithBuffer, "Contribution would exceed maximum total");
         
         daikon.totalContributions += msg.value;
         userContributions[_daikonId][msg.sender] += msg.value;
@@ -162,12 +173,12 @@ contract DaikonLaunchpad is Ownable {
      * Check and advance the phase of a Daikon if necessary
      * @param _daikonId The ID of the Daikon to check and potentially advance
      */
-    function checkAndAdvancePhase(uint256 _daikonId) public {
+    function checkAndAdvancePhase(uint256 _daikonId) public nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
         
         if (daikon.phase == 1 && block.timestamp >= daikon.nextPhaseTimestamp) {
-            if (daikon.totalContributions >= 80 ether) {
+            if (daikon.totalContributions >= maxContribution) {
                 daikon.phase = 3;
             } else {
                 daikon.phase = 2;
@@ -176,7 +187,7 @@ contract DaikonLaunchpad is Ownable {
             daikon.nextPhaseTimestamp = type(uint256).max; // Set to max value to avoid interference
             daikon.seedsAssignable = true;
             emit PhaseAdvanced(_daikonId, daikon.phase);
-        } else if (daikon.phase == 2 && daikon.totalContributions >= 80 ether) {
+        } else if (daikon.phase == 2 && daikon.totalContributions >= maxContribution) {
             daikon.phase = 3;
             emit PhaseAdvanced(_daikonId, daikon.phase);
         }
@@ -186,7 +197,7 @@ contract DaikonLaunchpad is Ownable {
      * Start a periodic sale for a Daikon
      * @param _daikonId The ID of the Daikon to start the sale for
      */
-    function startPeriodicSale(uint256 _daikonId) internal {
+    function startPeriodicSale(uint256 _daikonId) internal nonReentrant {
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.phase == 2, "Periodic sales are only allowed in phase 2");
         require(daikon.periodicSaleInfo.periodicSaleEndTimestamp == 0 || block.timestamp >= daikon.periodicSaleInfo.periodicSaleEndTimestamp, "Previous sale has not ended");
@@ -203,7 +214,7 @@ contract DaikonLaunchpad is Ownable {
      * Contribute to the periodic sale of a Daikon
      * @param _daikonId The ID of the Daikon to contribute to
      */
-    function contributeToPeriodicSale(uint256 _daikonId) public payable {
+    function contributeToPeriodicSale(uint256 _daikonId) public payable nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
         
@@ -224,7 +235,7 @@ contract DaikonLaunchpad is Ownable {
 
         emit PeriodicSaleContribution(_daikonId, daikon.periodicSaleInfo.currentSaleIndex, msg.sender, msg.value);
 
-        if (daikon.totalContributions + daikon.periodicSaleInfo.contributionsInCurrentSale >= 80 ether) {
+        if (daikon.totalContributions + daikon.periodicSaleInfo.contributionsInCurrentSale >= maxContribution) {
             endPeriodicSale(_daikonId);
             daikon.phase = 3;
             emit PhaseAdvanced(_daikonId, daikon.phase);
@@ -281,7 +292,7 @@ contract DaikonLaunchpad is Ownable {
      * Assign Daikon Seeds to the caller
      * @param _daikonId The ID of the Daikon to assign seeds for
      */
-    function claimSeeds(uint256 _daikonId) public {
+    function claimSeeds(uint256 _daikonId) public nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.seedsAssignable, "Seeds are not assignable yet");
@@ -338,16 +349,13 @@ contract DaikonLaunchpad is Ownable {
      * @param _daikonId The ID of the Daikon to redeem seeds from
      * @param _seedAmount The amount of seeds to redeem
      */
-    function redeemSeeds(uint256 _daikonId, uint256 _seedAmount) public {
+    function redeemSeeds(uint256 _daikonId, uint256 _seedAmount) public nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
         
-        // Check and advance phase if needed
+        // Checks
         checkAndAdvancePhase(_daikonId);
-        
-        // Claim seeds if available
         checkAndClaimSeeds(_daikonId);
-        
         require(daikon.phase == 2 || daikon.phase == 4, "Seeds can only be redeemed in phase 2 or 4");
         require(userSeeds[_daikonId][msg.sender] >= _seedAmount, "Insufficient seeds to redeem");
 
@@ -357,12 +365,13 @@ contract DaikonLaunchpad is Ownable {
         require(redeemableEth > 0, "Redeemable amount too small");
         require(address(this).balance >= redeemableEth, "Insufficient contract balance");
 
+        // Effects
         userSeeds[_daikonId][msg.sender] -= _seedAmount;
         daikon.circulatingSeeds -= _seedAmount;
         daikon.totalContributions -= redeemableEth;
 
-        (bool sent, ) = msg.sender.call{value: redeemableEth}("");
-        require(sent, "Failed to send Ether");
+        // Interaction
+        payable(msg.sender).transfer(redeemableEth);
 
         emit SeedsRedeemed(_daikonId, msg.sender, _seedAmount, redeemableEth);
 
@@ -381,7 +390,7 @@ contract DaikonLaunchpad is Ownable {
      * @param _daikonId The ID of the Daikon
      * @param _saleId The ID of the past sale
      */
-    function claimSeedsFromPastSale(uint256 _daikonId, uint256 _saleId) public {
+    function claimSeedsFromPastSale(uint256 _daikonId, uint256 _saleId) public nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
         require(_saleId < daikon.periodicSaleInfo.currentSaleIndex, "Can only claim from past sales");
@@ -410,7 +419,7 @@ contract DaikonLaunchpad is Ownable {
      * Claim seeds from all past periodic sales since the last claim
      * @param _daikonId The ID of the Daikon
      */
-    function claimAllPendingSeeds(uint256 _daikonId) public {
+    function claimAllPendingSeeds(uint256 _daikonId) public nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         Daikon storage daikon = daikons[_daikonId];
 
@@ -501,7 +510,7 @@ contract DaikonLaunchpad is Ownable {
      * Register as a candidate for the Steward role
      * @param _daikonId The ID of the Daikon
      */
-    function registerAsStewardCandidate(uint256 _daikonId) public payable {
+    function registerAsStewardCandidate(uint256 _daikonId) public payable nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         require(msg.value == 0.01 ether, "Registration fee is 0.01 ETH");
         require(!isStewardCandidate[_daikonId][msg.sender], "Already registered as a candidate");
@@ -533,5 +542,17 @@ contract DaikonLaunchpad is Ownable {
     function getStewardCandidateCount(uint256 _daikonId) public view returns (uint256) {
         require(_daikonId < daikons.length, "Daikon does not exist");
         return stewardCandidates[_daikonId].length;
+    }
+
+    /**
+     * Update the maximum contribution values
+     * @param _newMaxContribution The new maximum contribution value in wei
+     * @dev Only the contract owner can call this function
+     */
+    function updateMaxContribution(uint256 _newMaxContribution) public onlyOwner {
+        require(_newMaxContribution > 0, "Max contribution must be greater than 0");
+        
+        maxContribution = _newMaxContribution;
+        maxContributionWithBuffer = _newMaxContribution + (0.05 ether);
     }
 }

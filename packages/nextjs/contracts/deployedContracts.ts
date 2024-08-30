@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     DaikonLaunchpad: {
-      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
       abi: [
         {
           inputs: [],
@@ -412,11 +412,6 @@ const deployedContracts = {
               internalType: "string",
               name: "_data",
               type: "string",
-            },
-            {
-              internalType: "uint256",
-              name: "_totalSeeds",
-              type: "uint256",
             },
           ],
           name: "createDaikon",
