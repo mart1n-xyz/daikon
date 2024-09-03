@@ -50,12 +50,10 @@ Every DAO needs long-term core contributors to build the vision of the project. 
 
 Upon claiming their ERC20 allocation, Seed holders will be asked to vote for an address to become the steward. The winner of this vote, after 3 days, will be assigned the vesting contract and expected to start building the project. Candidates for this role are expected to register their candidacy prior to the vote for a small fee (0.01 ETH) as a spam prevention measure. This can be done from the DAO deployment on Daikon up to the graduation of the DAO. It is expected that the steward will be chosen based on prior contributions to the project and alignment with the DAO's vision. It can be a single builder or a number of key contributors represented by a multisig or further smart contract logic. Should there be no candidate, the vesting contract will be assigned to the 0x address and the associated token allocation, therefore, burned.
 
-##### DAO-Owned Liquidity and Treasury
-Extra tokens will be minted and paired with the ETH contributed via Daikon to supply liquidity via Uniswap. This LP positions will be transfered to DAO's new treasury. 
+##### DAO Treasury
+The ETH contributed via Daikon (up to 80 ETH) will be deposited into the DAO's treasury. The treasury will be further assigned additional newly-minted ERC20 tokens, empowering the DAO with resources for project development and product incentivization. The allocation and utilization of these tokens will be subject to community governance. The community will decide how to structure liquidity assuming the treasury's ETH will be (partly) used for liquidity provision.
 
-The treasury will be further assigned additional newly-minted ERC20 tokens, empowering the DAO with resources for project development and product incentivization. The allocation and utilization of these tokens will be subject to community governance.
-
-Upon graduation, Seed holders receive their allocation of the ERC20 token, forming the initial circulating supply. This supply, however, is dynamic. The vesting contract for the DAO steward gradually releases tokens over time, while the Uniswap liquidity pool enables new participants to acquire tokens. These mechanisms contribute to a gradual and organic growth of the token's circulating supply. This approach ensures a balanced distribution and aligns with the DAO's long-term development and community expansion goals.
+Upon graduation, Seed holders receive their allocation of the ERC20 token, forming the initial circulating supply. This supply, however, is dynamic. The vesting contract for the DAO steward gradually releases tokens over time, contributing to a gradual and organic growth of the token's circulating supply. This approach ensures a balanced distribution and aligns with the DAO's long-term development and community expansion goals.
 
 Daikon will not provide any interface for the governance of the DAO after graduation. The DAO will be able to utilize the variety of DAO tools available, such as Tally, Snapshot, etc.
 
