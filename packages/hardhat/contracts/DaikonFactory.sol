@@ -61,6 +61,9 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     uint256 public maxContribution;
     uint256 public maxContributionWithBuffer;
 
+    address public daikonGraduationCeremonyAddress;
+    bool public graduationCeremonyAddressSet;
+
     constructor() Ownable() {
         maxContribution = 80 ether;
         maxContributionWithBuffer = 80.05 ether;
@@ -567,6 +570,7 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.phase == 3, "Daikon must be in phase 3 to graduate");
         require(daikon.totalContributions >= maxContribution, "Daikon must reach maximum contribution to graduate");
+        require(graduationCeremonyAddressSet, "Graduation ceremony address not set");
 
         // Send 1 ETH reward to the Daikon initiator
         payable(daikon.deployer).transfer(1 ether);
@@ -579,6 +583,19 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
         daikon.phase = 5; // 5 represents the graduated state
 
         emit DaikonGraduated(_daikonId, daikon.deployer, treasuryAmount);
+    }
+
+    /**
+     * Set the DaikonGraduationCeremony contract address
+     * @param _ceremonyAddress The address of the DaikonGraduationCeremony contract
+     * @dev Can only be called once by the contract owner
+     */
+    function setGraduationCeremonyAddress(address _ceremonyAddress) public onlyOwner {
+        require(!graduationCeremonyAddressSet, "Graduation ceremony address already set");
+        require(_ceremonyAddress != address(0), "Invalid ceremony address");
+        
+        daikonGraduationCeremonyAddress = _ceremonyAddress;
+        graduationCeremonyAddressSet = true;
     }
 
     // Add this function to the DaikonLaunchpad contract
