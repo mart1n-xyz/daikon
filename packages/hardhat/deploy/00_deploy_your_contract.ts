@@ -1,42 +1,66 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
-/**
- * Deploys a contract named "DaikonLaunchpad" using the deployer account
- *
- * @param hre HardhatRuntimeEnvironment object.
- */
-const deployDaikonLaunchpad: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  /*
-    On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
-
-    When deploying to live networks (e.g `yarn deploy --network sepolia`), the deployer account
-    should have sufficient balance to pay for the gas fees for contract creation.
-
-    You can generate a random account with `yarn generate` which will fill DEPLOYER_PRIVATE_KEY
-    with a random private key in the .env file (then used on hardhat.config.ts)
-    You can run the `yarn account` command to check your balance in every network.
-  */
+const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  await deploy("DaikonLaunchpad", {
+  // Deploy ERC20Factory
+  const ERC20Factory = await deploy("ERC20Factory", {
     from: deployer,
-    // Contract constructor arguments
     args: [],
     log: true,
-    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-    // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
+  console.log("👋 ERC20Factory deployed at:", ERC20Factory.address);
 
-  // Get the deployed contract to interact with it after deploying.
-  const DaikonLaunchpad = await hre.deployments.get("DaikonLaunchpad");
+  // Deploy VestingFactory
+  const VestingFactory = await deploy("VestingFactory", {
+    from: deployer,
+    args: [], // We'll set the graduation ceremony address later
+    log: true,
+    autoMine: true,
+  });
+  console.log("👋 VestingFactory deployed at:", VestingFactory.address);
+
+  // Deploy GovernorFactory
+  const GovernorFactory = await deploy("GovernorFactory", {
+    from: deployer,
+    args: [],
+    log: true,
+    autoMine: true,
+  });
+  console.log("👋 GovernorFactory deployed at:", GovernorFactory.address);
+
+  // Deploy DaikonLaunchpad
+  const DaikonLaunchpad = await deploy("DaikonLaunchpad", {
+    from: deployer,
+    args: [],
+    log: true,
+    autoMine: true,
+  });
   console.log("👋 DaikonLaunchpad deployed at:", DaikonLaunchpad.address);
+
+  // Deploy DaikonGraduationCeremony
+  const DaikonGraduationCeremony = await deploy("DaikonGraduationCeremony", {
+    from: deployer,
+    args: [DaikonLaunchpad.address, ERC20Factory.address, GovernorFactory.address, VestingFactory.address],
+    log: true,
+    autoMine: true,
+  });
+  console.log("👋 DaikonGraduationCeremony deployed at:", DaikonGraduationCeremony.address);
+
+  // Set the graduation ceremony address in the VestingFactory
+  const vestingFactory = await hre.ethers.getContractAt("VestingFactory", VestingFactory.address);
+  await vestingFactory.setGraduationCeremonyAddress(DaikonGraduationCeremony.address);
+  console.log("✅ Graduation ceremony address set in VestingFactory");
+
+  // Set the graduation ceremony address in the DaikonLaunchpad
+  const daikonLaunchpad = await hre.ethers.getContractAt("DaikonLaunchpad", DaikonLaunchpad.address);
+  await daikonLaunchpad.setGraduationCeremonyAddress(DaikonGraduationCeremony.address);
+  console.log("✅ Graduation ceremony address set in DaikonLaunchpad");
 };
 
-export default deployDaikonLaunchpad;
+export default deployContracts;
 
-// Tags are useful if you have multiple deploy files and only want to run one of them.
-// e.g. yarn deploy --tags DaikonLaunchpad
-deployDaikonLaunchpad.tags = ["DaikonLaunchpad"];
+deployContracts.tags = ["DaikonContracts"];
