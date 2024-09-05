@@ -9,22 +9,22 @@ module.exports = {
     themes: [
       {
         light: {
-          primary: "#93BBFB",
-          "primary-content": "#212638",
-          secondary: "#DAE8FF",
-          "secondary-content": "#212638",
-          accent: "#93BBFB",
-          "accent-content": "#212638",
-          neutral: "#212638",
-          "neutral-content": "#ffffff",
-          "base-100": "#ffffff",
-          "base-200": "#f4f8ff",
-          "base-300": "#DAE8FF",
-          "base-content": "#212638",
-          info: "#93BBFB",
-          success: "#34EEB6",
-          warning: "#FFCF72",
-          error: "#FF8863",
+          primary: "#A8D5BA",          // Soft pastel green
+          "primary-content": "#2C4A3E", // Darker green for contrast
+          secondary: "#E8F4ED",        // Very light pastel green
+          "secondary-content": "#2C4A3E",
+          accent: "#7FB69E",           // Muted green accent
+          "accent-content": "#FFFFFF",
+          neutral: "#4A6D5D",          // Muted dark green
+          "neutral-content": "#FFFFFF",
+          "base-100": "#FFFFFF",
+          "base-200": "#F7FAF9",       // Very light green tint
+          "base-300": "#E8F4ED",       // Same as secondary
+          "base-content": "#2C4A3E",
+          info: "#A8D5BA",             // Same as primary
+          success: "#8ECDA8",          // Pastel success green
+          warning: "#F0E6AA",          // Pastel warning yellow
+          error: "#E6B8B0",            // Pastel error red
 
           "--rounded-btn": "9999rem",
 
@@ -41,22 +41,22 @@ module.exports = {
       },
       {
         dark: {
-          primary: "#212638",
-          "primary-content": "#F9FBFF",
-          secondary: "#323f61",
-          "secondary-content": "#F9FBFF",
-          accent: "#4969A6",
-          "accent-content": "#F9FBFF",
-          neutral: "#F9FBFF",
-          "neutral-content": "#385183",
-          "base-100": "#385183",
-          "base-200": "#2A3655",
-          "base-300": "#212638",
-          "base-content": "#F9FBFF",
-          info: "#385183",
-          success: "#34EEB6",
-          warning: "#FFCF72",
-          error: "#FF8863",
+          primary: "#7FB69E",          // Muted green
+          "primary-content": "#FFFFFF",
+          secondary: "#4A6D5D",        // Darker muted green
+          "secondary-content": "#FFFFFF",
+          accent: "#A8D5BA",           // Soft pastel green
+          "accent-content": "#2C4A3E",
+          neutral: "#E8F4ED",
+          "neutral-content": "#2C4A3E",
+          "base-100": "#2C4A3E",       // Dark muted green
+          "base-200": "#3A5F50",       // Slightly lighter dark green
+          "base-300": "#4A6D5D",       // Same as secondary
+          "base-content": "#E8F4ED",
+          info: "#7FB69E",             // Same as primary
+          success: "#8ECDA8",          // Pastel success green
+          warning: "#F0E6AA",          // Pastel warning yellow
+          error: "#E6B8B0",            // Pastel error red
 
           "--rounded-btn": "9999rem",
 

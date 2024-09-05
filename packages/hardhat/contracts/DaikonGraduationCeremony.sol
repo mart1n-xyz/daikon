@@ -6,8 +6,8 @@ import "../interfaces/IERC20Factory.sol";
 import "../interfaces/IGovernorFactory.sol";
 import "../interfaces/IVestingFactory.sol";
 import "../interfaces/IVestingWallet.sol";
-import "../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IVotes} from "../artifacts/@openzeppelin/contracts/governance/utils/IVotes.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 
 contract DaikonGraduationCeremony {

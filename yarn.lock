@@ -377,7 +377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/abi@npm:5.7.0, @ethersproject/abi@npm:^5.0.9, @ethersproject/abi@npm:^5.1.2, @ethersproject/abi@npm:^5.7.0, @ethersproject/abi@npm:~5.7.0":
+"@ethersproject/abi@npm:5.7.0, @ethersproject/abi@npm:^5.0.9, @ethersproject/abi@npm:^5.1.2, @ethersproject/abi@npm:^5.5.0, @ethersproject/abi@npm:^5.7.0, @ethersproject/abi@npm:~5.7.0":
   version: 5.7.0
   resolution: "@ethersproject/abi@npm:5.7.0"
   dependencies:
@@ -1781,13 +1781,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:~4.8.1":
-  version: 4.8.3
-  resolution: "@openzeppelin/contracts@npm:4.8.3"
-  checksum: aea130d38d46840c5cbe3adbaa9a7ac645e4bd66ad3f3baf2fa78588c408d1a686170b3408c9e2e5e05530fba22ecdc00d7efb6b27852a8b29f91accbc0af255
-  languageName: node
-  linkType: hard
-
 "@parcel/watcher-android-arm64@npm:2.4.1":
   version: 2.4.1
   resolution: "@parcel/watcher-android-arm64@npm:2.4.1"
@@ -2113,7 +2106,7 @@ __metadata:
     "@nomicfoundation/hardhat-ethers": ~3.0.5
     "@nomicfoundation/hardhat-network-helpers": ~1.0.6
     "@nomicfoundation/hardhat-verify": ~2.0.3
-    "@openzeppelin/contracts": ~4.8.1
+    "@openzeppelin/contracts": ^5.0.2
     "@typechain/ethers-v5": ~10.1.0
     "@typechain/ethers-v6": ~0.5.1
     "@typechain/hardhat": ~9.1.0
@@ -4069,7 +4062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-colors@npm:^4.1.1, ansi-colors@npm:^4.1.3":
+"ansi-colors@npm:^4.1.0, ansi-colors@npm:^4.1.1, ansi-colors@npm:^4.1.3":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
   checksum: a9c2ec842038a1fabc7db9ece7d3177e2fe1c5dc6f0c51ecfbf5f39911427b89c00b5dc6b8bd95f82a26e9b16aaae2e83d45f060e98070ce4d1333038edceb0e
@@ -5778,6 +5771,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"delete-empty@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "delete-empty@npm:3.0.0"
+  dependencies:
+    ansi-colors: ^4.1.0
+    minimist: ^1.2.0
+    path-starts-with: ^2.0.0
+    rimraf: ^2.6.2
+  bin:
+    delete-empty: bin/cli.js
+  checksum: 1e2b030346683f49b12460b91d7e1793fc61e9aa0be152a1b31317363632e92426be270f8d635b89d3915ae7da753dcfa6e3bd200f62edf21eaa876ef4443fd2
+  languageName: node
+  linkType: hard
+
 "depd@npm:2.0.0":
   version: 2.0.0
   resolution: "depd@npm:2.0.0"
@@ -5963,7 +5970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"elliptic@npm:6.5.4":
+"elliptic@npm:6.5.4, elliptic@npm:^6.5.2, elliptic@npm:^6.5.4":
   version: 6.5.4
   resolution: "elliptic@npm:6.5.4"
   dependencies:
@@ -5975,21 +5982,6 @@ __metadata:
     minimalistic-assert: ^1.0.1
     minimalistic-crypto-utils: ^1.0.1
   checksum: d56d21fd04e97869f7ffcc92e18903b9f67f2d4637a23c860492fbbff5a3155fd9ca0184ce0c865dd6eb2487d234ce9551335c021c376cd2d3b7cb749c7d10f4
-  languageName: node
-  linkType: hard
-
-"elliptic@npm:^6.5.2, elliptic@npm:^6.5.4":
-  version: 6.5.7
-  resolution: "elliptic@npm:6.5.7"
-  dependencies:
-    bn.js: ^4.11.9
-    brorand: ^1.1.0
-    hash.js: ^1.0.0
-    hmac-drbg: ^1.0.1
-    inherits: ^2.0.4
-    minimalistic-assert: ^1.0.1
-    minimalistic-crypto-utils: ^1.0.1
-  checksum: af0ffddffdbc2fea4eeec74388cd73e62ed5a0eac6711568fb28071566319785df529c968b0bf1250ba4bc628e074b2d64c54a633e034aa6f0c6b152ceb49ab8
   languageName: node
   linkType: hard
 
@@ -7537,17 +7529,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fp-ts@npm:1.19.3":
+"fp-ts@npm:1.19.3, fp-ts@npm:^1.0.0":
   version: 1.19.3
   resolution: "fp-ts@npm:1.19.3"
   checksum: eb0d4766ad561e9c5c01bfdd3d0ae589af135556921c733d26cf5289aad9f400110defdd93e6ac1d71f626697bb44d9d95ed2879c53dfd868f7cac3cf5c5553c
-  languageName: node
-  linkType: hard
-
-"fp-ts@npm:^1.0.0":
-  version: 1.19.5
-  resolution: "fp-ts@npm:1.19.5"
-  checksum: 67d2d9c3855d211ca2592b1ef805f98b618157e7681791a776d9d0f7f3e52fcca2122ebf5bc215908c9099fad69756d40e37210cf46cb4075dae1b61efe69e40
   languageName: node
   linkType: hard
 
@@ -7912,7 +7897,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:7.2.0":
+"glob@npm:7.2.0, glob@npm:^7.1.3":
   version: 7.2.0
   resolution: "glob@npm:7.2.0"
   dependencies:
@@ -7955,7 +7940,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^7.0.0, glob@npm:^7.1.3":
+"glob@npm:^7.0.0":
   version: 7.2.3
   resolution: "glob@npm:7.2.3"
   dependencies:
@@ -8130,6 +8115,18 @@ __metadata:
   bin:
     handlebars: bin/handlebars
   checksum: 00e68bb5c183fd7b8b63322e6234b5ac8fbb960d712cb3f25587d559c2951d9642df83c04a1172c918c41bcfc81bfbd7a7718bbce93b893e0135fc99edea93ff
+  languageName: node
+  linkType: hard
+
+"hardhat-abi-exporter@npm:^2.10.1":
+  version: 2.10.1
+  resolution: "hardhat-abi-exporter@npm:2.10.1"
+  dependencies:
+    "@ethersproject/abi": ^5.5.0
+    delete-empty: ^3.0.0
+  peerDependencies:
+    hardhat: ^2.0.0
+  checksum: 5dba9ebb7bd1002311b504a87cc0f9197ffe5066a61d27073f49bde2adcd080e94ef9e2e696e4fb26c9731df1bed76967e1e0428742af36b37d9c70f9944c98b
   languageName: node
   linkType: hard
 
@@ -11029,6 +11026,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"path-starts-with@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "path-starts-with@npm:2.0.1"
+  checksum: c82322343958b092fca962791f98ee338d489ab4c2343a5c8ae10aa26dd5fceb24d86867127cff330a592c6450215f05258441390c1bccc8e318e82ff9912c09
+  languageName: node
+  linkType: hard
+
 "path-to-regexp@npm:6.1.0":
   version: 6.1.0
   resolution: "path-to-regexp@npm:6.1.0"
@@ -11643,6 +11647,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-icons@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "react-icons@npm:5.3.0"
+  peerDependencies:
+    react: "*"
+  checksum: 3aa5f50e05aafc6d31e0d995fe0d98560069aa88717b24ce8aaa082a7e7b20ca95e1e19d847ed6e52d658a5a30e15826af20d7554bf993a743edd55586db62e3
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.13.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -12045,7 +12058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^2.2.8":
+"rimraf@npm:^2.2.8, rimraf@npm:^2.6.2":
   version: 2.7.1
   resolution: "rimraf@npm:2.7.1"
   dependencies:
@@ -12237,8 +12250,10 @@ __metadata:
   resolution: "se-2@workspace:."
   dependencies:
     "@openzeppelin/contracts": ^5.0.2
+    hardhat-abi-exporter: ^2.10.1
     husky: ~8.0.3
     lint-staged: ~13.2.2
+    react-icons: ^5.3.0
   languageName: unknown
   linkType: soft
 

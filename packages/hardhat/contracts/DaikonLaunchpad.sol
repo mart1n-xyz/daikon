@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 // Useful for debugging. Remove when deploying to a live network.
 import "hardhat/console.sol";
 
-import "../artifacts/@openzeppelin/contracts/access/Ownable.sol";
-import "../artifacts/@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     event DaikonCreated(uint256 indexed daikonId, address indexed owner, string name, string symbol);

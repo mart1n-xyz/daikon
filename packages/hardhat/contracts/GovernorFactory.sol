@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IGovernor, Governor} from "../artifacts/@openzeppelin/contracts/governance/Governor.sol";
-import {GovernorCountingSimple} from "../artifacts/@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
-import {GovernorVotes} from "../artifacts/@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import {GovernorVotesQuorumFraction} from "../artifacts/@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
-import {GovernorTimelockControl} from "../artifacts/@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
-import {TimelockController} from "../artifacts/@openzeppelin/contracts/governance/TimelockController.sol";
-import {IVotes} from "../artifacts/@openzeppelin/contracts/governance/utils/IVotes.sol";
+import {IGovernor, Governor} from "@openzeppelin/contracts/governance/Governor.sol";
+import {GovernorCountingSimple} from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
+import {GovernorVotes} from "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
+import {GovernorVotesQuorumFraction} from "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
+import {GovernorTimelockControl} from "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
+import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract GovernorFactory {
+contract GovernorFactory is Ownable {
     address public graduationCeremony;
+    bool public graduationCeremonySet;
 
-    constructor(address _graduationCeremony) {
+    // Initialize Ownable in the constructor
+    constructor() Ownable(msg.sender) {}
+
+    function setGraduationCeremony(address _graduationCeremony) external onlyOwner {
+        require(!graduationCeremonySet, "Graduation ceremony address already set");
         graduationCeremony = _graduationCeremony;
+        graduationCeremonySet = true;
     }
 
     function deployGovernor(
