@@ -1,7 +1,8 @@
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/finance/VestingWallet.sol";
+import "../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./VestingWallet.sol";
+import "../interfaces/IVestingWallet.sol";
 
 contract VestingFactory {
     address public immutable graduationCeremonyContract;
@@ -27,8 +28,8 @@ contract VestingFactory {
             durationSeconds
         );
 
-        // Transfer ownership to the Graduation Ceremony contract
-        vestingWallet.transferOwnership(graduationCeremonyContract);
+        // Cast to IVestingWallet and transfer ownership
+        IVestingWallet(address(vestingWallet)).transferOwnership(graduationCeremonyContract);
 
         // Add the mapping entry
         daikonToVesting[token] = address(vestingWallet);

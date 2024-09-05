@@ -1,4 +1,5 @@
-pragma solidity >=0.8.0 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
 import {IVotes} from "../artifacts/@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {TimelockController} from "../artifacts/@openzeppelin/contracts/governance/TimelockController.sol";

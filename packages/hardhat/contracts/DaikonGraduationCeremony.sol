@@ -1,14 +1,17 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.8.20;
 
-import "../interfaces/IDaikonFactory.sol";
+import "../interfaces/IDaikonLaunchpad.sol";
 import "../interfaces/IERC20Factory.sol";
 import "../interfaces/IGovernorFactory.sol";
 import "../interfaces/IVestingFactory.sol";
+import "../interfaces/IVestingWallet.sol";
 import "../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IVotes} from "../artifacts/@openzeppelin/contracts/governance/utils/IVotes.sol";
+
 
 contract DaikonGraduationCeremony {
-    IDaikonFactory public daikonFactory;
+    IDaikonLaunchpad public daikonLaunchpad;
     IERC20Factory public erc20Factory;
     IGovernorFactory public governorFactory;
     IVestingFactory public vestingFactory;
@@ -28,22 +31,22 @@ contract DaikonGraduationCeremony {
     event DaikonGraduated(uint256 indexed daikonId, address indexed owner, address erc20Token, address governor, address vestingContract);
 
     constructor(
-        address _daikonFactoryAddress,
+        address _daikonLaunchpadAddress,
         address _erc20FactoryAddress,
         address _governorFactoryAddress,
         address _vestingFactoryAddress
     ) {
-        daikonFactory = IDaikonFactory(_daikonFactoryAddress);
+        daikonLaunchpad = IDaikonLaunchpad(_daikonLaunchpadAddress);
         erc20Factory = IERC20Factory(_erc20FactoryAddress);
         governorFactory = IGovernorFactory(_governorFactoryAddress);
         vestingFactory = IVestingFactory(_vestingFactoryAddress);
     }
 
     function graduateDaikon(uint256 _daikonId) public {
-        IDaikonFactory.Daikon memory daikon = daikonFactory.getDaikon(_daikonId);
+        IDaikonLaunchpad.Daikon memory daikon = daikonLaunchpad.getDaikon(_daikonId);
         require(daikon.phase == 5, "Daikon must be in graduated state");
 
-        // Get the treasury amount from DaikonFactory
+        // Get the treasury amount from daikonLaunchpad
         uint256 treasuryAmount = daikon.totalContributions - 1 ether;
         require(address(this).balance >= treasuryAmount, "Insufficient balance for graduation");
 
@@ -52,7 +55,7 @@ contract DaikonGraduationCeremony {
 
         // Deploy Governor contract
         TimelockController timelock = new TimelockController(1 days, new address[](0), new address[](0), address(this));
-        address governor = governorFactory.deployGovernor(string(abi.encodePacked(daikon.name, " Governor")), IERC20Votes(erc20Token), timelock);
+        address governor = governorFactory.deployGovernor(string(abi.encodePacked(daikon.name, " Governor")), IVotes(erc20Token), timelock);
 
         // Deploy Vesting contract
         address vestingContract = vestingFactory.deployVesting(erc20Token);
@@ -76,7 +79,7 @@ contract DaikonGraduationCeremony {
     }
 
     function claimERC20Allocation(uint256 _daikonId, address _voteFor) public {
-        IDaikonFactory.Daikon memory daikon = daikonFactory.getDaikon(_daikonId);
+        IDaikonLaunchpad.Daikon memory daikon = daikonLaunchpad.getDaikon(_daikonId);
         require(daikon.phase == 5, "Daikon must be graduated");
         require(!hasClaimed[_daikonId][msg.sender], "Tokens already claimed");
         
@@ -84,19 +87,19 @@ contract DaikonGraduationCeremony {
         require(erc20Token != address(0), "Daikon has not been graduated yet");
 
         // 1. Check the user's seed balance for the given Daikon
-        uint256 userSeedBalance = daikonFactory.getUserSeeds(_daikonId, msg.sender);
+        uint256 userSeedBalance = daikonLaunchpad.getUserSeeds(_daikonId, msg.sender);
         require(userSeedBalance > 0, "No seeds to claim");
 
         // 2. Calculate the corresponding ERC20 token allocation
         uint256 totalSupply = 10000000 * 1e18; // 10 million tokens for seed holders
-        uint256 totalSeeds = daikonFactory.getDaikonSeeds(_daikonId);
+        uint256 totalSeeds = daikonLaunchpad.getDaikonSeeds(_daikonId);
         uint256 tokenAllocation = (userSeedBalance * totalSupply) / totalSeeds;
 
         // Voting logic
         if (block.timestamp <= graduationTimestamp[_daikonId] + 3 days) {
-            address[] memory candidates = daikonFactory.getStewardCandidates(_daikonId);
+            address[] memory candidates = daikonLaunchpad.getStewardCandidates(_daikonId);
             if (candidates.length > 0) {
-                require(daikonFactory.isStewardCandidate(_daikonId, _voteFor), "Invalid candidate");
+                require(daikonLaunchpad.isStewardCandidate(_daikonId, _voteFor), "Invalid candidate");
                 votes[_daikonId][msg.sender] = _voteFor;
                 candidateVotes[_daikonId][_voteFor] += tokenAllocation;
             }
@@ -112,7 +115,7 @@ contract DaikonGraduationCeremony {
         require(block.timestamp > graduationTimestamp[_daikonId] + 3 days, "Voting period not ended");
         require(stewardWinner[_daikonId] == address(0), "Winner already calculated");
 
-        address[] memory candidates = daikonFactory.getStewardCandidates(_daikonId);
+        address[] memory candidates = daikonLaunchpad.getStewardCandidates(_daikonId);
         address winner = address(0);
         uint256 maxVotes = 0;
 
@@ -133,11 +136,11 @@ contract DaikonGraduationCeremony {
         address vestingContract = vestingFactory.daikonToVesting(erc20Token);
         
         // Reassign the vesting contract to the winner
-        VestingWallet(vestingContract).changeBeneficiary(winner);
+        IVestingWallet(vestingContract).changeBeneficiary(winner);
     }
 
     function getUserSeedBalance(uint256 _daikonId, address user) internal view returns (uint256) {
-        return daikonFactory.getUserSeeds(_daikonId, user);
+        return daikonLaunchpad.getUserSeeds(_daikonId, user);
     }
 
     // Update the getERC20TokenAddress function to use the stored address

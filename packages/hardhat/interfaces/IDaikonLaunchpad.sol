@@ -22,6 +22,8 @@ interface IDaikonLaunchpad {
     function getUserSeeds(uint256 _daikonId, address _user) external view returns (uint256);
     function maxContribution() external view returns (uint256);
     function maxContributionWithBuffer() external view returns (uint256);
+    function getStewardCandidates(uint256 _daikonId) external view returns (address[] memory);
     function isStewardCandidate(uint256 _daikonId, address _candidate) external view returns (bool);
+    function getDaikonSeeds(uint256 _daikonId) external view returns (uint256);
 }
 

@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
-
+pragma solidity ^0.8.20;
 // Useful for debugging. Remove when deploying to a live network.
 import "hardhat/console.sol";
 
@@ -56,7 +55,7 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     event StewardCandidateRegistered(uint256 indexed daikonId, address indexed candidate);
 
     mapping(uint256 => address[]) public stewardCandidates;
-    mapping(uint256 => mapping(address => bool)) public isStewardCandidate;
+    mapping(uint256 => mapping(address => bool)) public isStewardCandidateRegistered;
 
     uint256 public maxContribution;
     uint256 public maxContributionWithBuffer;
@@ -64,7 +63,7 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     address public daikonGraduationCeremonyAddress;
     bool public graduationCeremonyAddressSet;
 
-    constructor() Ownable() {
+    constructor() Ownable(msg.sender) {
         maxContribution = 80 ether;
         maxContributionWithBuffer = 80.05 ether;
     }
@@ -516,13 +515,13 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
     function registerAsStewardCandidate(uint256 _daikonId) public payable nonReentrant {
         require(_daikonId < daikons.length, "Daikon does not exist");
         require(msg.value == 0.01 ether, "Registration fee is 0.01 ETH");
-        require(!isStewardCandidate[_daikonId][msg.sender], "Already registered as a candidate");
+        require(!isStewardCandidateRegistered[_daikonId][msg.sender], "Already registered as a candidate");
 
         Daikon storage daikon = daikons[_daikonId];
         require(daikon.phase < 3, "Cannot register after DAO has graduated");
 
         stewardCandidates[_daikonId].push(msg.sender);
-        isStewardCandidate[_daikonId][msg.sender] = true;
+        isStewardCandidateRegistered[_daikonId][msg.sender] = true;
 
         emit StewardCandidateRegistered(_daikonId, msg.sender);
     }
@@ -600,6 +599,6 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
 
     // Add this function to the DaikonLaunchpad contract
     function isStewardCandidate(uint256 _daikonId, address _candidate) public view returns (bool) {
-        return isStewardCandidate[_daikonId][_candidate];
+        return isStewardCandidateRegistered[_daikonId][_candidate];
     }
 }
