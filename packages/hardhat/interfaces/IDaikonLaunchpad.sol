@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IDaikonFactory {
+interface IDaikonLaunchpad {
     struct Daikon {
         string name;
         string symbol;
