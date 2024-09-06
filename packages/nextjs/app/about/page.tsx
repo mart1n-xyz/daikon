@@ -108,14 +108,15 @@ const About: NextPage = () => {
             <li>The DAO treasury is established with the raised funds and token allocation.</li>
           </ul>
         </div>
-
-        <p className="mt-4">
-          For specific details, please refer to the{" "}
-          <a href="https://github.com/mart1n-xyz/daikon" className="text-primary">
-            GitHub
-          </a>{" "}
-          docs.
-        </p>
+        <div className="mt-8 p-4 bg-gray-100 border-l-4 border-gray-500 text-gray-700">
+          <p>
+            For specific details, please refer to the{" "}
+            <a href="https://github.com/mart1n-xyz/daikon" className="text-blue-600 hover:underline">
+              GitHub
+            </a>{" "}
+            docs.
+          </p>
+        </div>
       </div>
     </div>
   );

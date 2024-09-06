@@ -23,7 +23,13 @@ const Home: NextPage = () => {
           </h1>
 
           <div className="flex flex-col items-center md:max-w-2xl mx-auto">
-            <Image src="/daikon.jpg" alt="Daikon" className="w-1/3 md:w-1/3 mb-4" />
+            <Image
+              src="/daikon.jpg"
+              alt="Daikon"
+              className="w-1/3 md:w-1/3 mb-4"
+              width={300} // Add appropriate width
+              height={300} // Add appropriate height
+            />
             <p className="text-center text-lg">
               Daikon is a DAO launchpad that helps users explore, seed, and grow their DAO ideas. Successful DAOs
               graduate by deploying an ERC20 token and OpenZeppelin&apos;s Governor contract, transforming into fully

@@ -11,16 +11,34 @@ type HeaderMenuLink = {
   label: string;
   href: string;
   icon?: React.ReactNode;
+  className?: string; // Add this line
 };
 
 export const menuLinks: HeaderMenuLink[] = [
   {
     label: "Home",
     href: "/",
+    className: "home-button", // Add this line
   },
   {
     label: "About",
     href: "/about",
+  },
+  {
+    label: "Launch",
+    href: "/launch",
+  },
+  {
+    label: "Seed",
+    href: "/seed",
+  },
+  {
+    label: "Grow",
+    href: "/grow",
+  },
+  {
+    label: "Cook",
+    href: "/cook",
   },
   {
     label: "Debug Contracts",
@@ -33,31 +51,30 @@ export const HeaderMenuLinks = () => {
   const pathname = usePathname();
 
   return (
-    <>
-      {menuLinks.map(({ label, href, icon }) => {
+    <ul className="flex flex-col lg:flex-row justify-center gap-2 lg:gap-4">
+      {menuLinks.map(({ label, href, icon, className }) => {
+        // Removed 'index' from here
         const isActive = pathname === href;
         return (
-          <li key={href}>
-            <Link
-              href={href}
-              passHref
-              className={`${
-                isActive ? "bg-secondary shadow-md" : ""
-              } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
-            >
-              {icon}
-              <span>{label}</span>
-            </Link>
-          </li>
+          <React.Fragment key={href}>
+            <li className="w-full lg:w-auto">
+              <Link
+                href={href}
+                className={`${
+                  isActive ? "bg-secondary shadow-md text-lg font-bold" : "text-lg font-semibold"
+                } ${className} hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-2 px-4 rounded-full gap-2 flex items-center`}
+              >
+                {icon}
+                <span>{label}</span>
+              </Link>
+            </li>
+          </React.Fragment>
         );
       })}
-    </>
+    </ul>
   );
 };
 
-/**
- * Site header
- */
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
@@ -82,7 +99,7 @@ export const Header = () => {
           {isDrawerOpen && (
             <ul
               tabIndex={0}
-              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-screen max-w-xs"
               onClick={() => {
                 setIsDrawerOpen(false);
               }}
@@ -91,7 +108,6 @@ export const Header = () => {
             </ul>
           )}
         </div>
-        {/* Removed logo and text element */}
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 gap-2">

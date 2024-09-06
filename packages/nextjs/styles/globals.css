@@ -30,3 +30,23 @@ p {
 .btn.btn-ghost {
   @apply shadow-none;
 }
+
+.home-button {
+  background-color: #6BAF92; /* Lighter, more vibrant green in light mode */
+  color: white;
+}
+
+.home-button:hover {
+  background-color: #5A9E7F; /* Slightly darker green on hover */
+}
+
+@media (prefers-color-scheme: dark) {
+  .home-button {
+    background-color: #3A5F50; /* Slightly lighter dark green in dark mode */
+    color: white;
+  }
+
+  .home-button:hover {
+    background-color: #2C4A3E; /* Darker green on hover */
+  }
+}
