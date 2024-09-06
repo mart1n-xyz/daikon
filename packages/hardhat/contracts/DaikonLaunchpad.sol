@@ -119,12 +119,12 @@ contract DaikonLaunchpad is Ownable, ReentrancyGuard {
 
     /**
      * Get Daikon info by ID
-    
+     */
     function getDaikon(uint256 _daikonId) public view returns (Daikon memory) {
         require(_daikonId < daikons.length, "Daikon does not exist");
         return daikons[_daikonId];
     }
- */
+
     /**
      * Get Daikons deployed by an address
      */

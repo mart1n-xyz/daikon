@@ -1,7 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+
+// Simplified DaikonDetailsList component
+const DaikonDetailsList = ({ daoIds }: { daoIds: Array<bigint> }) => {
+  return (
+    <div className="bg-base-100 shadow-xl p-8 rounded-lg">
+      <h2 className="text-2xl font-bold mb-6">Your Deployed DAOs</h2>
+      {daoIds.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {daoIds.map(id => (
+            <div key={id.toString()} className="bg-base-200 p-4 rounded-lg text-center">
+              <span className="text-lg font-medium">DAO ID</span>
+              <p className="text-xl font-bold text-primary">{id.toString()}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-gray-500">You haven&apos;t deployed any DAOs yet.</p>
+      )}
+    </div>
+  );
+};
 
 const Launch = () => {
   const [name, setName] = useState("");
@@ -12,7 +35,23 @@ const Launch = () => {
   const [discord, setDiscord] = useState("");
   const [manifesto, setManifesto] = useState("");
 
+  const [daoIds, setDaoIds] = useState<Array<bigint>>([]);
+
   const { writeContractAsync: deployDAOAsync } = useScaffoldWriteContract("DaikonLaunchpad");
+
+  const { address } = useAccount();
+
+  const { data: deployedDAOIds, refetch: refetchDAOIds } = useScaffoldReadContract({
+    contractName: "DaikonLaunchpad",
+    functionName: "getDaikonsByDeployer",
+    args: [address],
+  });
+
+  useEffect(() => {
+    if (deployedDAOIds) {
+      setDaoIds([...deployedDAOIds]); // Convert readonly array to mutable array
+    }
+  }, [deployedDAOIds]);
 
   const validateUrl = (url: string) => {
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
@@ -56,8 +95,8 @@ const Launch = () => {
         args: [name, symbol, BigInt(contributionPeriod), additionalData],
       });
 
-      // Handle successful launch (e.g., show success message, redirect)
       console.log("DAO launched successfully");
+      await refetchDAOIds(); // Refresh the list after successful launch
     } catch (error) {
       console.error("Error launching DAO:", error);
       alert(error instanceof Error ? error.message : "An error occurred while launching the DAO");
@@ -70,8 +109,8 @@ const Launch = () => {
         Launch Your <span className="text-primary">Daikon DAO</span>
       </h1>
       <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/2 order-2 md:order-1">
-          <div className="bg-base-100 shadow-xl p-8 rounded-lg">
+        <div className="w-full md:w-1/3 order-2 md:order-1">
+          <div className="bg-base-100 shadow-xl p-8 rounded-lg mb-8">
             {/* Form inputs */}
             <div className="mb-4">
               <label className="block text-lg font-medium mb-2">Daikon DAO Name</label>
@@ -148,13 +187,14 @@ const Launch = () => {
                 onChange={e => setManifesto(e.target.value)}
               />
             </div>
-            <button className="btn btn-primary w-full" onClick={handleLaunch}>
-              Launch DAO
+            <button className="btn btn-primary w-full text-lg py-3 h-auto" onClick={handleLaunch}>
+              Launch Daikon DAO
             </button>
           </div>
         </div>
-        <div className="w-full md:w-1/2 order-1 md:order-2">
-          <div className="bg-base-100 shadow-xl p-8 rounded-lg">
+
+        <div className="w-full md:w-2/3 order-1 md:order-2">
+          <div className="bg-base-100 shadow-xl p-8 rounded-lg mb-8">
             <h2 className="text-2xl font-semibold mb-6">Initializing Your Daikon DAO</h2>
             <div className="space-y-4">
               <p>
@@ -183,6 +223,8 @@ const Launch = () => {
               </div>
             </div>
           </div>
+
+          <DaikonDetailsList daoIds={daoIds} />
         </div>
       </div>
     </div>
