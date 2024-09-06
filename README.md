@@ -7,7 +7,7 @@
 
 ## About
 
-Daikon is a DAO launchpad that allows users to explore ideas for DAOs, seed them with capital, grow its community and builder base. When the time is right, successful DAOs graduate from Daikon by deploying an ERC20 token with Uniswap liquidity and OpenZeppelin's Governor contract, transforming the initial concept into a fully-fledged, operational DAO. 
+Daikon is a DAO launchpad that allows users to explore ideas for DAOs, seed them with capital, grow its community and builder base. When the time is right, successful DAOs graduate from Daikon by deploying an ERC20 token and OpenZeppelin's Governor contract, transforming the initial concept into a fully-fledged, operational DAO. 
 This seamless journey from ideation to decentralized governance empowers visionaries and memetics to connect with skilled builders and capital providers, fostering an ecosystem where innovative ideas can flourish and transform into impactful, community-driven organizations.
 
 ## Daikon Launch Phases
